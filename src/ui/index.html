@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
+    <title>K24 Virtual Printer</title>
+    <link rel="stylesheet" href="receipt.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-mark" src="logo.png" alt="" width="32" height="32" />
+        <span class="brand-name">K24 Virtual Printer</span>
+      </div>
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab" data-view="printer" aria-current="page"><span data-icon="printer"></span>Printer</button>
+        <button class="tab" data-view="guide"><span data-icon="book-open"></span>How it works</button>
+        <button class="tab" data-view="settings"><span data-icon="settings-2"></span>Settings</button>
+      </nav>
+      <div class="chips" aria-live="polite">
+        <span class="chip" id="chip-printer"><span class="led"></span><span id="chip-printer-text"></span></span>
+        <span class="chip" id="chip-drawer"><span id="chip-drawer-icon"></span><span id="chip-drawer-text"></span></span>
+      </div>
+    </header>
+
+    <main>
+      <section class="view view-printer" id="view-printer">
+        <aside class="rail" aria-label="Receipts">
+          <div class="rail-head">
+            <h2>Receipts <span class="count" id="job-count"></span></h2>
+            <button class="icon-button" id="clear-jobs" title="Clear the list (keeps the PDFs)" aria-label="Clear the list, keeps the PDFs"><span data-icon="trash-2"></span></button>
+          </div>
+          <ul class="job-list" id="job-list"></ul>
+          <div class="rail-empty" id="rail-empty">
+            <span data-icon="receipt-text"></span>
+            <p>Each print from your POS shows up here.</p>
+          </div>
+          <button class="button rail-folder" id="open-folder"><span data-icon="folder-open"></span>Open PDF folder</button>
+        </aside>
+
+        <div class="stage">
+          <div class="printer" id="printer" data-state="off">
+            <div class="printer-face">
+              <div class="printer-label">
+                <span class="printer-model" id="printer-model"></span>
+                <span class="printer-status"><span class="led"></span><span id="printer-status-text"></span></span>
+              </div>
+              <button class="rocker" id="power" role="switch" aria-checked="false" aria-label="Printer power" title="Turn the printer on or off">
+                <span class="rocker-cap"><span data-icon="power"></span></span>
+              </button>
+            </div>
+            <div class="printer-slot"></div>
+          </div>
+
+          <div class="notice" id="printer-notice" hidden>
+            <span data-icon="triangle-alert"></span>
+            <p id="printer-notice-text"></p>
+            <button class="button" id="printer-notice-action">Open Settings</button>
+          </div>
+
+          <div class="well" id="well">
+            <div class="paper" id="paper">
+              <div id="receipt"></div>
+              <div class="starter" id="starter">
+                <h2>Nothing printed yet</h2>
+                <ol class="starter-steps">
+                  <li>
+                    <span>Add a network printer in your POS with this address:</span>
+                    <button class="address" data-copy-address title="Copy the address"><span data-bind="address"></span><span data-icon="copy"></span></button>
+                  </li>
+                  <li><span>Print a receipt or open the drawer from your POS.</span></li>
+                  <li><span>The receipt comes out here and is saved as a PDF.</span></li>
+                </ol>
+                <p class="starter-or">Want to see it first?</p>
+                <button class="button primary" data-send-test><span data-icon="send"></span>Send test receipt</button>
+                <button class="link" data-goto="guide">See every step</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="job-bar" id="job-bar" hidden>
+            <div class="job-file">
+              <span id="job-state-icon"></span>
+              <div>
+                <strong id="job-title"></strong>
+                <span id="job-detail"></span>
+              </div>
+            </div>
+            <div class="job-actions">
+              <button class="button" id="job-retry" hidden><span data-icon="refresh-cw"></span>Try saving again</button>
+              <button class="button" id="job-show"><span data-icon="folder-open"></span>Show in folder</button>
+              <button class="button primary" id="job-open"><span data-icon="external-link"></span>Open PDF</button>
+            </div>
+          </div>
+          <ul class="job-warnings" id="job-warnings" hidden></ul>
+        </div>
+
+        <aside class="counter" aria-label="Cash drawer and connection">
+          <section class="panel">
+            <h2>Cash drawer</h2>
+            <button class="till" id="till" data-open="false" title="Open or close the drawer" aria-label="Cash drawer">
+              <span class="till-landing"><span id="till-landing-icon"></span><span id="till-landing-text"></span></span>
+              <span class="till-tray" aria-hidden="true">
+                <span class="tray-notes">
+                  <span class="note note-a"></span><span class="note note-b"></span><span class="note note-c"></span><span class="note note-d"></span>
+                </span>
+                <span class="tray-coins"><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="tray-lip"></span>
+              </span>
+              <span class="till-body" aria-hidden="true">
+                <span class="till-stripe"></span>
+                <span class="till-key"></span>
+              </span>
+            </button>
+            <button class="button wide" id="drawer-toggle"></button>
+            <p class="hint" id="drawer-hint"></p>
+            <ul class="drawer-log" id="drawer-log"></ul>
+          </section>
+
+          <section class="panel">
+            <h2>Connect your POS</h2>
+            <p class="hint">Type this as the printer address in your POS.</p>
+            <button class="address large" data-copy-address title="Copy the address"><span data-bind="address"></span><span data-icon="copy"></span></button>
+            <button class="button wide" data-send-test><span data-icon="send"></span>Send test receipt</button>
+            <p class="hint">The test prints a sample receipt and opens the drawer.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="view view-guide" id="view-guide" hidden>
+        <div class="doc">
+          <h1>How it works</h1>
+          <p class="lead">This app pretends to be a thermal receipt printer with a cash drawer. Your POS talks to it exactly as it would talk to real hardware, so you can test printing without paper.</p>
+
+          <div class="flow" aria-label="What happens when your POS prints">
+            <div class="flow-node">
+              <span class="flow-icon" data-icon="monitor-smartphone"></span>
+              <h3>Your POS</h3>
+              <p>Sends the receipt over the network.</p>
+            </div>
+            <span class="flow-link" data-icon="arrow-right"></span>
+            <div class="flow-node is-here">
+              <span class="flow-icon" data-icon="printer"></span>
+              <h3>This app</h3>
+              <p>Reads the printer commands and draws the receipt.</p>
+            </div>
+            <span class="flow-link" data-icon="arrow-right"></span>
+            <div class="flow-outcomes">
+              <div class="flow-node">
+                <span class="flow-icon" data-icon="file-check-2"></span>
+                <h3>A PDF in your folder</h3>
+                <p class="path" data-bind="folder"></p>
+              </div>
+              <div class="flow-node">
+                <span class="flow-icon brass" data-icon="banknote"></span>
+                <h3>The drawer slides open</h3>
+                <p>When the POS sends the drawer signal.</p>
+              </div>
+            </div>
+          </div>
+
+          <h2>Set it up in the Karbar24 POS</h2>
+          <ol class="steps">
+            <li>
+              <h3>Check the printer is on</h3>
+              <p>The light on the printer is green and it says Ready. <span data-bind="status-sentence"></span></p>
+            </li>
+            <li>
+              <h3>Add the printer</h3>
+              <p>In the POS, go to Settings, then Printers &amp; Hardware, and tap New Printer. Fill it in like this:</p>
+              <table class="values">
+                <tbody>
+                  <tr><th scope="row">Printer name</th><td>Virtual printer</td></tr>
+                  <tr><th scope="row">Connection</th><td>Network (LAN / Wi-Fi)</td></tr>
+                  <tr><th scope="row">Command language</th><td>ESC/POS (thermal)</td></tr>
+                  <tr><th scope="row">Target address</th><td><button class="address" data-copy-address title="Copy the address"><span data-bind="address"></span><span data-icon="copy"></span></button></td></tr>
+                  <tr><th scope="row">Paper width</th><td><span data-bind="paper"></span> mm</td></tr>
+                  <tr><th scope="row">Used for</th><td>Customer receipts</td></tr>
+                  <tr><th scope="row">Switches</th><td>Turn on Cash drawer, Auto-cut and Print exactly as on screen</td></tr>
+                </tbody>
+              </table>
+            </li>
+            <li>
+              <h3>Test it</h3>
+              <p>Save the printer, open it again and tap Test print, then Open drawer. Watch the Printer tab here.</p>
+            </li>
+            <li>
+              <h3>Make a sale</h3>
+              <p>A cash sale prints the receipt, saves the PDF and opens the drawer, all on its own.</p>
+            </li>
+          </ol>
+
+          <h2>Good to know</h2>
+          <div class="facts">
+            <article>
+              <span data-icon="hand"></span>
+              <h3>You close the drawer</h3>
+              <p>A POS can open a drawer but never closes one. A real drawer is pushed shut by hand, so here you press Close drawer, or set a timer in Settings.</p>
+            </article>
+            <article>
+              <span data-icon="smartphone"></span>
+              <h3>POS on another device</h3>
+              <p>In Settings, choose Other devices too, and allow the app if Windows Firewall asks. Both devices need the same network.</p>
+            </article>
+            <article>
+              <span data-icon="laptop"></span>
+              <h3>Use the desktop or Android POS</h3>
+              <p>A web browser cannot send to a network printer, so the web POS opens the normal print window instead.</p>
+            </article>
+            <article>
+              <span data-icon="languages"></span>
+              <h3>Bangla text</h3>
+              <p>The POS sends Bangla lines as pictures, as it does for a real printer. They appear on the receipt as images, so you can't select them in the PDF.</p>
+            </article>
+            <article>
+              <span data-icon="ruler"></span>
+              <h3>How close to real paper</h3>
+              <p>Line layout, sizes and pictures follow the printer commands. The letter shapes are this computer's font, so they differ a little from a real printer's.</p>
+            </article>
+            <article>
+              <span data-icon="power"></span>
+              <h3>Test a printer failure</h3>
+              <p>Turn the printer off with the switch on its front. Your POS gets the same refused connection as with a real printer that is off.</p>
+            </article>
+          </div>
+
+          <h2>If something goes wrong</h2>
+          <div class="faq">
+            <details>
+              <summary>The POS says it can't reach the printer</summary>
+              <p>Check the printer here is on and shows Ready. Copy the address from this app again. If the POS is on another device, choose Other devices too in Settings.</p>
+            </details>
+            <details>
+              <summary>The printer says another app is using the port</summary>
+              <p>A real printer service or another copy of this tool has that port. Close it, or choose a different port in Settings and use the new address in your POS.</p>
+            </details>
+            <details>
+              <summary>A receipt warns about wider paper</summary>
+              <p>Your POS and this app have different paper widths. Set both to the same width, 58 mm or 80 mm.</p>
+            </details>
+            <details>
+              <summary>Nothing appears when I print</summary>
+              <p>In your POS, check that this printer is Active and is the default receipt printer, and look at its Print jobs list for a failed job. A browser POS can't reach this app.</p>
+            </details>
+            <details>
+              <summary>The PDF was not saved</summary>
+              <p>The receipt shows why. Usually the folder is read-only or the disk is full. Choose another folder in Settings, then press Try saving again.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="view view-settings" id="view-settings" hidden>
+        <div class="doc">
+          <h1>Settings</h1>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="folder-open"></span>
+            <div class="setting-text">
+              <h3>Save PDFs to</h3>
+              <p class="path" data-bind="folder"></p>
+            </div>
+            <div class="setting-control">
+              <button class="button" id="pick-folder">Change folder</button>
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="ruler"></span>
+            <div class="setting-text">
+              <h3>Paper width</h3>
+              <p>Use the same width as the printer in your POS.</p>
+            </div>
+            <div class="setting-control segmented" role="radiogroup" aria-label="Paper width">
+              <label><input type="radio" name="paper" value="58" /><span>58 mm</span></label>
+              <label><input type="radio" name="paper" value="80" /><span>80 mm</span></label>
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="network"></span>
+            <div class="setting-text">
+              <h3>Who can print</h3>
+              <p id="scope-help"></p>
+            </div>
+            <div class="setting-control segmented" role="radiogroup" aria-label="Who can print">
+              <label><input type="radio" name="scope" value="local" /><span>This computer</span></label>
+              <label><input type="radio" name="scope" value="network" /><span>Other devices too</span></label>
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="plug-zap"></span>
+            <div class="setting-text">
+              <h3>Port number</h3>
+              <p>Thermal printers use 9100. Change it only if another app has that port.</p>
+            </div>
+            <div class="setting-control">
+              <input class="field" id="port" type="number" min="1" max="65535" aria-label="Port number" />
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="timer"></span>
+            <div class="setting-text">
+              <h3>Close the drawer by itself</h3>
+              <p>Handy for long test runs. Off means you close it, as with a real drawer.</p>
+            </div>
+            <div class="setting-control segmented" role="radiogroup" aria-label="Close the drawer by itself">
+              <label><input type="radio" name="autoClose" value="0" /><span>Off</span></label>
+              <label><input type="radio" name="autoClose" value="5" /><span>5 s</span></label>
+              <label><input type="radio" name="autoClose" value="10" /><span>10 s</span></label>
+              <label><input type="radio" name="autoClose" value="30" /><span>30 s</span></label>
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="volume-2"></span>
+            <div class="setting-text">
+              <h3>Drawer sound</h3>
+              <p>Rings a till bell when the drawer opens.</p>
+            </div>
+            <div class="setting-control">
+              <label class="toggle"><input type="checkbox" id="sound" aria-label="Drawer sound" /><span></span></label>
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-icon" data-icon="file-code"></span>
+            <div class="setting-text">
+              <h3>Keep the raw printer data</h3>
+              <p>Also saves a .bin file next to each PDF, with the exact bytes your POS sent. Useful when debugging print commands.</p>
+            </div>
+            <div class="setting-control">
+              <label class="toggle"><input type="checkbox" id="saveRaw" aria-label="Keep the raw printer data" /><span></span></label>
+            </div>
+          </div>
+
+          <p class="version">Version <span data-bind="version"></span></p>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <script src="icons.js"></script>
+    <script src="receipt-render.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

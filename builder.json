@@ -1,0 +1,31 @@
+{
+  "appId": "com.zayaanit.karbar24.virtualprinter",
+  "productName": "K24 Virtual Printer",
+  "electronVersion": "33.4.11",
+  "directories": {
+    "output": "dist",
+    "buildResources": "assets"
+  },
+  "files": [
+    "src/**/*",
+    "assets/icon.png",
+    "package.json"
+  ],
+  "win": {
+    "target": ["nsis"],
+    "icon": "assets/icon.ico",
+    "artifactName": "K24-Virtual-Printer-Setup-${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": "always",
+    "createStartMenuShortcut": true,
+    "shortcutName": "K24 Virtual Printer",
+    "uninstallDisplayName": "K24 Virtual Printer",
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico",
+    "deleteAppDataOnUninstall": false
+  }
+}

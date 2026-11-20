@@ -1,0 +1,23 @@
+{
+  "name": "karbar24-virtual-printer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "K24 Virtual Printer: a pretend thermal printer and cash drawer for testing a POS. Every print is saved as a PDF.",
+  "type": "module",
+  "main": "src/main/main.js",
+  "author": "Zayaan IT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/*.test.mjs\"",
+    "icon": "electron scripts/make-icon.mjs",
+    "shortcut": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-shortcut.ps1",
+    "package": "electron-builder --config builder.json --win"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "^25.1.8"
+  }
+}

@@ -1,0 +1,55 @@
+/* The receipt itself, shared by the screen preview and the PDF. --dot is set by whoever hosts it. */
+.receipt {
+  box-sizing: border-box;
+  padding-block: calc(var(--dot) * 28);
+  color: var(--thermal, #000);
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: calc(var(--dot) * var(--glyph));
+  font-variant-ligatures: none;
+}
+
+.r-line,
+.r-image,
+.r-placeholder {
+  display: flex;
+  align-items: flex-end;
+}
+
+.r-left { justify-content: flex-start; }
+.r-center { justify-content: center; }
+.r-right { justify-content: flex-end; }
+
+.r-run {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.r-reverse {
+  background: var(--thermal, #000);
+  color: #fff;
+}
+
+.r-glyphs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: calc(var(--dot) * 24);
+  white-space: pre;
+  transform-origin: 0 0;
+}
+
+.r-bold { font-weight: 700; }
+.r-underline { text-decoration: underline; }
+
+.r-image img {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.r-placeholder span {
+  padding: calc(var(--dot) * 6) calc(var(--dot) * 12);
+  margin-block: calc(var(--dot) * 6);
+  border: calc(var(--dot) * 2) dashed currentColor;
+  overflow-wrap: anywhere;
+}
